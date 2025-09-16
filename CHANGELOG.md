@@ -5,6 +5,28 @@ All notable changes to the OOTDiffusion project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2025-01-16
+
+### 🚀 CPU Compatibility Support
+
+#### Render Free/Cheap Tier Support
+- **Added CPU-Compatible Docker Image**
+  - Updated Dockerfile base image from `nvidia/cuda:12.0-devel-ubuntu22.04` to `python:3.10-slim`
+  - Added PyTorch CPU version support (torch==2.0.1+cpu, torchvision==0.15.2+cpu)
+  - Configured for CPU-only inference on Render free/cheap tiers
+  - Removed CUDA-specific environment variables and dependencies
+  - Added PyTorch CPU index URL for proper package installation
+
+### Technical Details
+- **Docker Configuration**
+  - Base image: `python:3.10-slim` (CPU-compatible)
+  - PyTorch version: 2.0.1+cpu (CPU-only)
+  - Device: CPU (OOTD_DEVICE=cpu)
+  - Optimized for cloud hosting platforms without GPU access
+  - Maintains all existing functionality with CPU inference
+
+---
+
 ## [1.0.1] - 2025-01-16
 
 ### 🐛 Bug Fixes

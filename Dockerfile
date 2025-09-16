@@ -1,25 +1,17 @@
 # Multi-stage Dockerfile for OOTDiffusion production deployment
-FROM nvidia/cuda:12.0-devel-ubuntu22.04 as base
+FROM python:3.10-slim as base
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
-ENV CUDA_HOME=/usr/local/cuda
-ENV PATH=${CUDA_HOME}/bin:${PATH}
-ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+ENV OOTD_DEVICE=cpu
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    python3.10 \
-    python3.10-dev \
-    python3-pip \
-    python3.10-venv \
     git \
     wget \
     curl \
     build-essential \
-    cmake \
-    ninja-build \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
@@ -28,9 +20,6 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     libgcc-s1 \
     && rm -rf /var/lib/apt/lists/*
-
-# Create symbolic link for python
-RUN ln -s /usr/bin/python3.10 /usr/bin/python
 
 # Upgrade pip
 RUN python -m pip install --upgrade pip
@@ -43,7 +32,7 @@ COPY requirements.txt .
 COPY requirements-prod.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements-prod.txt
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu -r requirements-prod.txt
 
 # Copy application code
 COPY . .
