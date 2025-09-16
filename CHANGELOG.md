@@ -5,6 +5,26 @@ All notable changes to the OOTDiffusion project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-01-16
+
+### 🐛 Bug Fixes
+
+#### Docker Image Compatibility
+- **Fixed Docker Build Issue**
+  - Updated Dockerfile base image from `nvidia/cuda:11.8-devel-ubuntu22.04` to `nvidia/cuda:12.0-devel-ubuntu22.04`
+  - Resolved "image not found" error during Docker builds
+  - Improved compatibility with current NVIDIA CUDA Docker registry
+  - Maintains PyTorch 2.0.1 compatibility with CUDA 12.0
+
+### Technical Details
+- **Docker Configuration**
+  - Base image: `nvidia/cuda:12.0-devel-ubuntu22.04`
+  - CUDA version: 12.0 (backward compatible with PyTorch 2.0.1)
+  - Ubuntu version: 22.04 LTS
+  - Maintains all existing functionality and model compatibility
+
+---
+
 ## [1.0.0] - 2024-12-19
 
 ### 🚀 Production Readiness Release
