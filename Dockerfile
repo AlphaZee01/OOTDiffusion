@@ -31,8 +31,13 @@ WORKDIR /app
 COPY requirements.txt .
 COPY requirements-prod.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu -r requirements-prod.txt
+# Install PyTorch first from their CPU wheels
+RUN pip install --no-cache-dir \
+    torch==2.0.1+cpu torchvision==0.15.2+cpu \
+    --index-url https://download.pytorch.org/whl/cpu
+
+# Then install everything else from PyPI
+RUN pip install --no-cache-dir -r requirements-prod.txt --extra-index-url https://pypi.org/simple
 
 # Copy application code
 COPY . .
