@@ -54,14 +54,38 @@ RUN mkdir -p checkpoints temp outputs/logs
 # Set permissions
 RUN chmod +x scripts/*.sh 2>/dev/null || true
 
+# Install git-lfs for model downloading
+RUN apt-get update && apt-get install -y git-lfs && \
+    git lfs install && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create entrypoint script for automatic model download
+RUN echo '#!/bin/bash\n\
+echo "🎭 OOTDiffusion - Starting with automatic model download..."\n\
+\n\
+# Check if models exist\n\
+if [ ! -d "checkpoints/ootd" ] || [ ! "$(ls -A checkpoints/ootd)" ]; then\n\
+    echo "📥 Models not found, starting download..."\n\
+    python scripts/auto_download_models.py\n\
+    echo "✅ Model download completed"\n\
+else\n\
+    echo "✅ Models already available"\n\
+fi\n\
+\n\
+# Start the application\n\
+echo "🚀 Starting OOTDiffusion API..."\n\
+exec "$@"' > /app/entrypoint.sh && \
+    chmod +x /app/entrypoint.sh
+
 # Expose port
 EXPOSE 7865
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=30s --start-period=300s --retries=3 \
     CMD curl -f http://localhost:7865/health || exit 1
 
-# Default command
+# Use entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["python", "api/app.py"]
 
 # Development stage

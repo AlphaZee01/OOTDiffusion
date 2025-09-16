@@ -22,20 +22,70 @@ Our model checkpoints trained on [VITON-HD](https://github.com/shadow2496/VITON-
 ![demo](images/demo.png)&nbsp;
 ![workflow](images/workflow.png)&nbsp;
 
-## Installation
-1. Clone the repository
+## 🚀 Quick Start (Recommended)
 
-```sh
-git clone https://github.com/levihsu/OOTDiffusion
+### One-Command Setup
+```bash
+# Clone the repository
+git clone https://github.com/your-username/OOTDiffusion
+cd OOTDiffusion
+
+# One-command setup (automatically downloads models and starts API)
+python quick_start.py
 ```
 
-2. Create a conda environment and install the required packages
+### Docker Setup (Production)
+```bash
+# Clone and start with Docker
+git clone https://github.com/your-username/OOTDiffusion
+cd OOTDiffusion
+docker-compose up -d
+```
 
-```sh
-conda create -n ootd python==3.10
-conda activate ootd
-pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2
-pip install -r requirements.txt
+**Access your OOTDiffusion instance:**
+- API: http://localhost:7865
+- Documentation: http://localhost:7865/docs
+- Test Interface: Open `test_interface.html` in your browser
+
+## 📦 Manual Installation
+
+### Prerequisites
+- Python 3.8+
+- Git LFS (for model downloads)
+- CUDA (optional, for GPU acceleration)
+
+### Step 1: Clone Repository
+```bash
+git clone https://github.com/your-username/OOTDiffusion
+cd OOTDiffusion
+```
+
+### Step 2: Install Dependencies
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements-prod.txt
+```
+
+### Step 3: Download Models (Automatic)
+```bash
+# Models download automatically on first run
+python start.py --mode api
+
+# Or download manually
+python scripts/download_models.py
+```
+
+### Step 4: Start the Application
+```bash
+# Start production API
+python start.py --mode api
+
+# Or start with Gradio interface
+python start.py --mode gradio
 ```
 
 ## Inference

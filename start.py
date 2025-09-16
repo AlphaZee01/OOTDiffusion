@@ -11,6 +11,40 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).absolute().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+def check_and_download_models():
+    """Check if models exist and download them if needed"""
+    from pathlib import Path
+    
+    checkpoints_dir = Path("checkpoints")
+    required_models = ["ootd", "humanparsing", "openpose", "clip-vit-large-patch14"]
+    
+    # Check if all models exist
+    missing_models = []
+    for model in required_models:
+        model_path = checkpoints_dir / model
+        if not model_path.exists() or not any(model_path.iterdir()):
+            missing_models.append(model)
+    
+    if missing_models:
+        print(f"📥 Missing models: {', '.join(missing_models)}")
+        print("🔄 Starting automatic model download...")
+        
+        # Run the auto-download script
+        import subprocess
+        try:
+            result = subprocess.run([
+                sys.executable, "scripts/auto_download_models.py"
+            ], check=True, capture_output=True, text=True)
+            print("✅ Models downloaded successfully!")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Model download failed: {e}")
+            print("Please run: python scripts/download_models.py")
+            return False
+    else:
+        print("✅ All models are available")
+        return True
+
 def main():
     """Main startup function"""
     parser = argparse.ArgumentParser(description="Start OOTDiffusion in different modes")
@@ -43,6 +77,11 @@ def main():
         default=1,
         help="Number of workers (default: 1)"
     )
+    parser.add_argument(
+        "--skip-model-check",
+        action="store_true",
+        help="Skip automatic model download check"
+    )
     
     args = parser.parse_args()
     
@@ -51,6 +90,11 @@ def main():
     os.environ["OOTD_HOST"] = args.host
     os.environ["OOTD_PORT"] = str(args.port)
     os.environ["OOTD_WORKERS"] = str(args.workers)
+    
+    # Check and download models if needed (except for test mode)
+    if not args.skip_model_check and args.mode != "test":
+        if not check_and_download_models():
+            print("⚠️  Continuing without all models. Some features may not work.")
     
     if args.mode == "api":
         start_api()
