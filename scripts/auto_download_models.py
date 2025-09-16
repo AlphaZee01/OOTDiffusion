@@ -119,8 +119,29 @@ def ensure_git_lfs():
             logger.error("Failed to install git-lfs. Please install manually.")
             return False
     
-    # Initialize git-lfs
-    run_command("git lfs install", "Initializing git-lfs")
+    # Initialize git-lfs with better error handling
+    try:
+        # Try system-wide installation first
+        result = subprocess.run(["git", "lfs", "install", "--system"], 
+                              capture_output=True, text=True, timeout=30)
+        if result.returncode == 0:
+            logger.info("✅ Git LFS initialized successfully (system-wide)")
+            return True
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        logger.warning(f"⚠️ System-wide git-lfs install failed: {e}")
+    
+    try:
+        # Fallback to user installation
+        result = subprocess.run(["git", "lfs", "install"], 
+                              capture_output=True, text=True, timeout=30)
+        if result.returncode == 0:
+            logger.info("✅ Git LFS initialized successfully (user)")
+            return True
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        logger.warning(f"⚠️ User git-lfs install failed: {e}")
+    
+    # If both fail, try to continue anyway (git-lfs might work without explicit install)
+    logger.warning("⚠️ Git LFS initialization failed, but continuing with download attempt...")
     return True
 
 def download_all_models(checkpoints_dir="checkpoints"):
