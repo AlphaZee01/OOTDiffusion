@@ -50,8 +50,10 @@ RUN chmod +x scripts/*.sh 2>/dev/null || true
 
 # Install git-lfs for model downloading
 RUN apt-get update && apt-get install -y git-lfs && \
-    git lfs install && \
     rm -rf /var/lib/apt/lists/*
+
+# Initialize git-lfs after installation
+RUN git lfs install --system
 
 # Create entrypoint script for automatic model download
 RUN echo '#!/bin/bash\n\
