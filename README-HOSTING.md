@@ -206,6 +206,15 @@ sudo lsof -ti:7865 | xargs kill -9
 
 ### Docker Issues
 
+#### CUDA Base Image Not Found
+```bash
+# Use alternative Dockerfile (CPU-only)
+docker-compose -f docker-compose.alternative.yml up -d
+
+# Or try different CUDA version in Dockerfile
+# Change: FROM nvidia/cuda:12.1-devel-ubuntu22.04 as base
+```
+
 #### Container Won't Start
 ```bash
 # Check logs
@@ -222,6 +231,18 @@ docker-compose up -d
 sudo chown -R $USER:$USER .
 chmod +x scripts/*.sh
 ```
+
+#### GPU Support Issues
+```bash
+# Install NVIDIA Container Toolkit
+sudo apt-get update && sudo apt-get install -y nvidia-docker2
+sudo systemctl restart docker
+
+# Test GPU access
+docker run --rm --gpus all nvidia/cuda:12.1-base-ubuntu22.04 nvidia-smi
+```
+
+**📖 For detailed Docker troubleshooting, see `DOCKER_TROUBLESHOOTING.md`**
 
 ## 📈 Scaling
 

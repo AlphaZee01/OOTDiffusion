@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  ootd-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.alternative
+      target: production
+    ports:
+      - "7865:7865"
+    environment:
+      - OOTD_ENVIRONMENT=production
+      - OOTD_DEBUG=false
+      - OOTD_HOST=0.0.0.0
+      - OOTD_PORT=7865
+      - OOTD_WORKERS=1
+      - OOTD_DEVICE=cpu  # CPU-only mode for alternative build
+    volumes:
+      - ./checkpoints:/app/checkpoints:ro
+      - ./outputs:/app/outputs
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7865/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 300s
+
+  ootd-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.alternative
+      target: development
+    ports:
+      - "7866:7865"
+    environment:
+      - OOTD_ENVIRONMENT=development
+      - OOTD_DEBUG=true
+      - OOTD_HOST=0.0.0.0
+      - OOTD_PORT=7865
+      - OOTD_WORKERS=1
+      - OOTD_DEVICE=cpu  # CPU-only mode for alternative build
+    volumes:
+      - ./:/app
+      - ./checkpoints:/app/checkpoints:ro
+      - ./outputs:/app/outputs
+      - ./logs:/app/logs
+    restart: unless-stopped
+    profiles:
+      - dev
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    profiles:
+      - cache
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - ootd-api
+    restart: unless-stopped
+    profiles:
+      - nginx
+
+volumes:
+  redis_data:

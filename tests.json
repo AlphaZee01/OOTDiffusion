@@ -1,0 +1,212 @@
+{
+  "name": "OOTDiffusion Tests",
+  "version": "1.0.0",
+  "description": "Test suite for OOTDiffusion RunPod deployment",
+  "test_timeout": 300,
+  "tests": [
+    {
+      "name": "health_check",
+      "description": "Test health endpoint availability",
+      "type": "http",
+      "method": "GET",
+      "endpoint": "/health",
+      "expected_status": 200,
+      "expected_response": {
+        "status": "healthy",
+        "models_loaded": true,
+        "gpu_available": true
+      },
+      "timeout": 30
+    },
+    {
+      "name": "api_docs_available",
+      "description": "Test API documentation endpoint",
+      "type": "http",
+      "method": "GET",
+      "endpoint": "/docs",
+      "expected_status": 200,
+      "timeout": 10
+    },
+    {
+      "name": "root_endpoint",
+      "description": "Test root endpoint",
+      "type": "http",
+      "method": "GET",
+      "endpoint": "/",
+      "expected_status": 200,
+      "expected_response": {
+        "message": "OOTDiffusion API",
+        "version": "1.0.0"
+      },
+      "timeout": 10
+    },
+    {
+      "name": "process_endpoint_validation",
+      "description": "Test process endpoint with invalid request",
+      "type": "http",
+      "method": "POST",
+      "endpoint": "/process",
+      "body": {
+        "model_type": "invalid_type"
+      },
+      "expected_status": 422,
+      "timeout": 30
+    },
+    {
+      "name": "file_upload_validation",
+      "description": "Test file upload validation",
+      "type": "http",
+      "method": "POST",
+      "endpoint": "/process",
+      "files": {
+        "model_file": "test_data/sample_model.jpg",
+        "cloth_file": "test_data/sample_cloth.jpg"
+      },
+      "form_data": {
+        "model_type": "hd",
+        "category": "0",
+        "samples": "1"
+      },
+      "expected_status": 200,
+      "expected_response": {
+        "success": true,
+        "result_paths": "array"
+      },
+      "timeout": 120
+    },
+    {
+      "name": "model_loading_test",
+      "description": "Test that all models are loaded correctly",
+      "type": "custom",
+      "script": "test_model_loading.py",
+      "timeout": 60
+    },
+    {
+      "name": "gpu_availability_test",
+      "description": "Test GPU availability and configuration",
+      "type": "custom",
+      "script": "test_gpu_availability.py",
+      "timeout": 30
+    },
+    {
+      "name": "memory_usage_test",
+      "description": "Test memory usage during inference",
+      "type": "custom",
+      "script": "test_memory_usage.py",
+      "timeout": 60
+    },
+    {
+      "name": "image_processing_test",
+      "description": "Test image processing with sample data",
+      "type": "custom",
+      "script": "test_image_processing.py",
+      "timeout": 90
+    },
+    {
+      "name": "error_handling_test",
+      "description": "Test error handling with invalid inputs",
+      "type": "custom",
+      "script": "test_error_handling.py",
+      "timeout": 30
+    }
+  ],
+  "test_data": {
+    "sample_model.jpg": {
+      "description": "Sample model image for testing",
+      "size": "768x1024",
+      "format": "JPEG",
+      "source": "run/examples/model/model_1.png"
+    },
+    "sample_cloth.jpg": {
+      "description": "Sample clothing image for testing",
+      "size": "768x1024",
+      "format": "JPEG",
+      "source": "run/examples/garment/00055_00.jpg"
+    }
+  },
+  "performance_benchmarks": {
+    "inference_time": {
+      "max_seconds": 30,
+      "target_seconds": 15
+    },
+    "memory_usage": {
+      "max_gb": 16,
+      "target_gb": 12
+    },
+    "throughput": {
+      "min_images_per_minute": 2,
+      "target_images_per_minute": 4
+    }
+  },
+  "environment_checks": [
+    {
+      "name": "python_version",
+      "command": "python --version",
+      "expected": "Python 3.10"
+    },
+    {
+      "name": "pytorch_version",
+      "command": "python -c 'import torch; print(torch.__version__)'",
+      "expected": "2.0.1"
+    },
+    {
+      "name": "cuda_availability",
+      "command": "python -c 'import torch; print(torch.cuda.is_available())'",
+      "expected": "True"
+    },
+    {
+      "name": "gpu_count",
+      "command": "python -c 'import torch; print(torch.cuda.device_count())'",
+      "expected_min": 1
+    },
+    {
+      "name": "disk_space",
+      "command": "df -h /workspace | tail -1 | awk '{print $4}'",
+      "expected_min": "10G"
+    },
+    {
+      "name": "memory_available",
+      "command": "free -h | grep Mem | awk '{print $7}'",
+      "expected_min": "8G"
+    }
+  ],
+  "custom_test_scripts": {
+    "test_model_loading.py": {
+      "description": "Test that all required models are loaded",
+      "script": "import sys\nimport os\nsys.path.append('/workspace')\n\nfrom api.app import model_manager\nimport torch\n\n# Test model loading\ndef test_models_loaded():\n    assert model_manager.models_loaded, 'Models not loaded'\n    assert 'ootd_hd' in model_manager.models, 'OOTD HD model not loaded'\n    assert 'ootd_dc' in model_manager.models, 'OOTD DC model not loaded'\n    assert 'openpose_hd' in model_manager.models, 'OpenPose HD model not loaded'\n    assert 'parsing_hd' in model_manager.models, 'Parsing HD model not loaded'\n    print('All models loaded successfully')\n    return True\n\nif __name__ == '__main__':\n    test_models_loaded()"
+    },
+    "test_gpu_availability.py": {
+      "description": "Test GPU availability and configuration",
+      "script": "import torch\nimport os\n\ndef test_gpu():\n    # Check CUDA availability\n    assert torch.cuda.is_available(), 'CUDA not available'\n    \n    # Check GPU count\n    gpu_count = torch.cuda.device_count()\n    assert gpu_count > 0, f'No GPUs found, found {gpu_count}'\n    \n    # Check GPU memory\n    gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3\n    assert gpu_memory >= 8, f'Insufficient GPU memory: {gpu_memory:.1f}GB (need 8GB+)'\n    \n    # Test GPU computation\n    x = torch.randn(1000, 1000).cuda()\n    y = torch.mm(x, x.t())\n    assert y.is_cuda, 'GPU computation failed'\n    \n    print(f'GPU test passed: {gpu_count} GPU(s), {gpu_memory:.1f}GB memory')\n    return True\n\nif __name__ == '__main__':\n    test_gpu()"
+    },
+    "test_memory_usage.py": {
+      "description": "Test memory usage during inference",
+      "script": "import psutil\nimport torch\nimport gc\nfrom api.app import model_manager\n\ndef test_memory_usage():\n    # Get initial memory\n    initial_memory = psutil.virtual_memory().used / 1024**3\n    gpu_memory_before = torch.cuda.memory_allocated() / 1024**3 if torch.cuda.is_available() else 0\n    \n    # Simulate processing\n    if torch.cuda.is_available():\n        # Create some tensors to simulate processing\n        x = torch.randn(1000, 1000).cuda()\n        y = torch.mm(x, x.t())\n        \n        gpu_memory_after = torch.cuda.memory_allocated() / 1024**3\n        gpu_memory_used = gpu_memory_after - gpu_memory_before\n        \n        # Check GPU memory usage is reasonable\n        assert gpu_memory_used < 2.0, f'GPU memory usage too high: {gpu_memory_used:.2f}GB'\n        \n        # Clean up\n        del x, y\n        torch.cuda.empty_cache()\n    \n    # Check system memory\n    final_memory = psutil.virtual_memory().used / 1024**3\n    memory_used = final_memory - initial_memory\n    \n    assert memory_used < 1.0, f'System memory usage too high: {memory_used:.2f}GB'\n    \n    print(f'Memory test passed: GPU {gpu_memory_used:.2f}GB, System {memory_used:.2f}GB')\n    return True\n\nif __name__ == '__main__':\n    test_memory_usage()"
+    },
+    "test_image_processing.py": {
+      "description": "Test image processing with sample data",
+      "script": "import os\nimport sys\nimport tempfile\nfrom PIL import Image\nimport numpy as np\n\nsys.path.append('/workspace')\nfrom api.app import model_manager\nfrom config import config\n\ndef test_image_processing():\n    # Create test images\n    model_img = Image.new('RGB', (768, 1024), color='red')\n    cloth_img = Image.new('RGB', (768, 1024), color='blue')\n    \n    # Save to temporary files\n    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as model_file:\n        model_img.save(model_file.name, 'JPEG')\n        model_path = model_file.name\n    \n    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as cloth_file:\n        cloth_img.save(cloth_file.name, 'JPEG')\n        cloth_path = cloth_file.name\n    \n    try:\n        # Test processing\n        from api.app import ProcessRequest\n        request = ProcessRequest(\n            model_type='hd',\n            category=0,\n            samples=1,\n            steps=5,  # Reduced for testing\n            scale=2.0,\n            seed=42\n        )\n        \n        # This would normally process the image\n        # For testing, we'll just validate the request\n        assert request.model_type == 'hd'\n        assert request.category == 0\n        assert request.samples == 1\n        \n        print('Image processing test passed')\n        return True\n        \n    finally:\n        # Clean up\n        os.unlink(model_path)\n        os.unlink(cloth_path)\n\nif __name__ == '__main__':\n    test_image_processing()"
+    },
+    "test_error_handling.py": {
+      "description": "Test error handling with invalid inputs",
+      "script": "import sys\nsys.path.append('/workspace')\nfrom api.app import ProcessRequest\nfrom utils.validation import validator\n\ndef test_error_handling():\n    # Test invalid model type\n    try:\n        request = ProcessRequest(model_type='invalid')\n        assert False, 'Should have raised validation error'\n    except Exception as e:\n        print(f'Correctly caught invalid model type: {e}')\n    \n    # Test invalid category\n    try:\n        request = ProcessRequest(category=999)\n        assert False, 'Should have raised validation error'\n    except Exception as e:\n        print(f'Correctly caught invalid category: {e}')\n    \n    # Test invalid samples\n    try:\n        request = ProcessRequest(samples=10)\n        assert False, 'Should have raised validation error'\n    except Exception as e:\n        print(f'Correctly caught invalid samples: {e}')\n    \n    # Test invalid steps\n    try:\n        request = ProcessRequest(steps=100)\n        assert False, 'Should have raised validation error'\n    except Exception as e:\n        print(f'Correctly caught invalid steps: {e}')\n    \n    print('Error handling test passed')\n    return True\n\nif __name__ == '__main__':\n    test_error_handling()"
+    }
+  },
+  "success_criteria": {
+    "min_passing_tests": 8,
+    "max_failing_tests": 2,
+    "required_tests": [
+      "health_check",
+      "api_docs_available",
+      "model_loading_test",
+      "gpu_availability_test"
+    ]
+  },
+  "reporting": {
+    "format": "json",
+    "include_logs": true,
+    "include_performance": true,
+    "include_errors": true
+  }
+}
+

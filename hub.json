@@ -1,0 +1,242 @@
+{
+  "name": "OOTDiffusion",
+  "display_name": "OOTDiffusion - Outfitting Fusion",
+  "description": "Production-ready API for Outfitting Fusion based Latent Diffusion. Generate high-quality virtual try-on images by combining model photos with clothing items.",
+  "version": "1.0.0",
+  "author": "AlphaZee01",
+  "license": "MIT",
+  "repository": "https://github.com/AlphaZee01/OOTDiffusion",
+  "homepage": "https://github.com/AlphaZee01/OOTDiffusion",
+  "documentation": "https://github.com/AlphaZee01/OOTDiffusion/blob/main/README-HOSTING.md",
+  "tags": [
+    "virtual-try-on",
+    "fashion",
+    "ai",
+    "diffusion",
+    "image-generation",
+    "clothing",
+    "computer-vision"
+  ],
+  "categories": [
+    "Image Generation",
+    "Fashion",
+    "Computer Vision"
+  ],
+  "gpu_memory_min": 8,
+  "gpu_memory_recommended": 16,
+  "cpu_cores_min": 4,
+  "cpu_cores_recommended": 8,
+  "ram_min": 16,
+  "ram_recommended": 32,
+  "disk_space_min": 20,
+  "disk_space_recommended": 50,
+  "supported_gpus": [
+    "RTX 3080",
+    "RTX 3090",
+    "RTX 4080",
+    "RTX 4090",
+    "A100",
+    "V100",
+    "T4"
+  ],
+  "docker_image": "runpod/pytorch:2.0.1-py3.10-cuda11.8.0-devel-ubuntu22.04",
+  "docker_args": {
+    "shm_size": "16g",
+    "gpus": "all"
+  },
+  "environment_variables": {
+    "OOTD_HOST": "0.0.0.0",
+    "OOTD_PORT": "8000",
+    "OOTD_WORKERS": "1",
+    "OOTD_DEVICE": "cuda:0",
+    "OOTD_TORCH_DTYPE": "float16",
+    "OOTD_ENVIRONMENT": "production",
+    "OOTD_DEBUG": "false",
+    "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:512"
+  },
+  "ports": {
+    "8000": "HTTP API Server"
+  },
+  "volumes": {
+    "/workspace/checkpoints": "Model checkpoints storage",
+    "/workspace/outputs": "Generated images output"
+  },
+  "startup_command": "python handler.py",
+  "health_check": {
+    "endpoint": "/health",
+    "timeout": 30,
+    "interval": 10
+  },
+  "api_endpoints": {
+    "process": {
+      "method": "POST",
+      "path": "/process",
+      "description": "Process model and clothing images to generate virtual try-on results",
+      "parameters": {
+        "model_file": {
+          "type": "file",
+          "required": true,
+          "description": "Model image file (person photo)"
+        },
+        "cloth_file": {
+          "type": "file",
+          "required": true,
+          "description": "Clothing image file"
+        },
+        "model_type": {
+          "type": "string",
+          "default": "hd",
+          "options": ["hd", "dc"],
+          "description": "Model type: 'hd' for high-definition or 'dc' for dress code"
+        },
+        "category": {
+          "type": "integer",
+          "default": 0,
+          "options": [0, 1, 2],
+          "description": "Garment category: 0=upperbody, 1=lowerbody, 2=dress"
+        },
+        "samples": {
+          "type": "integer",
+          "default": 1,
+          "min": 1,
+          "max": 4,
+          "description": "Number of samples to generate"
+        },
+        "steps": {
+          "type": "integer",
+          "default": 20,
+          "min": 1,
+          "max": 40,
+          "description": "Number of inference steps"
+        },
+        "scale": {
+          "type": "float",
+          "default": 2.0,
+          "min": 1.0,
+          "max": 5.0,
+          "description": "Guidance scale"
+        },
+        "seed": {
+          "type": "integer",
+          "default": -1,
+          "min": -1,
+          "max": 2147483647,
+          "description": "Random seed (-1 for random)"
+        }
+      }
+    },
+    "health": {
+      "method": "GET",
+      "path": "/health",
+      "description": "Health check endpoint"
+    },
+    "docs": {
+      "method": "GET",
+      "path": "/docs",
+      "description": "API documentation"
+    }
+  },
+  "example_usage": {
+    "curl": "curl -X POST 'http://localhost:8000/process' -F 'model_file=@model.jpg' -F 'cloth_file=@cloth.jpg' -F 'model_type=hd' -F 'samples=1'",
+    "python": "import requests\nfiles = {'model_file': open('model.jpg', 'rb'), 'cloth_file': open('cloth.jpg', 'rb')}\ndata = {'model_type': 'hd', 'category': 0, 'samples': 1}\nresponse = requests.post('http://localhost:8000/process', files=files, data=data)\nprint(response.json())"
+  },
+  "requirements": {
+    "python": "3.10",
+    "pytorch": "2.0.1",
+    "cuda": "11.8",
+    "cudnn": "8.7"
+  },
+  "dependencies": [
+    "fastapi==0.104.1",
+    "uvicorn[standard]==0.24.0",
+    "python-multipart==0.0.6",
+    "torch==2.0.1",
+    "torchvision==0.15.2",
+    "diffusers==0.24.0",
+    "transformers==4.36.2",
+    "accelerate==0.26.1",
+    "opencv-python==4.7.0.72",
+    "pillow==9.4.0",
+    "numpy==1.24.4",
+    "scipy==1.10.1",
+    "scikit-image==0.21.0",
+    "matplotlib==3.7.4",
+    "tqdm==4.64.1",
+    "einops==0.7.0",
+    "onnxruntime==1.16.2"
+  ],
+  "model_download": {
+    "enabled": true,
+    "auto_download": true,
+    "models": [
+      {
+        "name": "OOTD HD",
+        "path": "checkpoints/ootd",
+        "size": "4.2GB",
+        "description": "High-definition virtual try-on model"
+      },
+      {
+        "name": "OOTD DC",
+        "path": "checkpoints/ootd",
+        "size": "4.2GB",
+        "description": "Dress code virtual try-on model"
+      },
+      {
+        "name": "Human Parsing",
+        "path": "checkpoints/humanparsing",
+        "size": "1.8GB",
+        "description": "Human body parsing model"
+      },
+      {
+        "name": "OpenPose",
+        "path": "checkpoints/openpose",
+        "size": "1.2GB",
+        "description": "Human pose estimation model"
+      },
+      {
+        "name": "CLIP",
+        "path": "checkpoints/clip-vit-large-patch14",
+        "size": "1.5GB",
+        "description": "CLIP vision-language model"
+      }
+    ]
+  },
+  "performance": {
+    "inference_time": "10-30 seconds per image",
+    "memory_usage": "8-16GB VRAM",
+    "throughput": "1-4 images per minute",
+    "optimization": "Supports mixed precision and memory optimization"
+  },
+  "limitations": {
+    "max_image_size": "10MB",
+    "supported_formats": ["jpg", "jpeg", "png", "bmp"],
+    "max_samples": 4,
+    "processing_timeout": "5 minutes"
+  },
+  "troubleshooting": {
+    "common_issues": [
+      "Out of memory: Reduce samples or use CPU offload",
+      "Slow processing: Ensure GPU is available and properly configured",
+      "Model download fails: Check internet connection and disk space",
+      "Invalid image format: Ensure images are in supported formats"
+    ],
+    "logs_location": "/workspace/logs",
+    "debug_mode": "Set OOTD_DEBUG=true to enable debug logging"
+  },
+  "support": {
+    "documentation": "https://github.com/AlphaZee01/OOTDiffusion/blob/main/README-HOSTING.md",
+    "issues": "https://github.com/AlphaZee01/OOTDiffusion/issues",
+    "discussions": "https://github.com/AlphaZee01/OOTDiffusion/discussions"
+  },
+  "changelog": {
+    "1.0.0": [
+      "Initial release with RunPod support",
+      "Added automatic model downloading",
+      "Implemented production-ready API",
+      "Added comprehensive error handling",
+      "Optimized for GPU inference"
+    ]
+  }
+}
+
+
