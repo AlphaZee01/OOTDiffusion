@@ -1,0 +1,58 @@
+# Production requirements for OOTDiffusion
+# Base requirements
+numpy==1.24.4
+scipy==1.10.1
+scikit-image==0.21.0
+opencv-python==4.7.0.72
+pillow==9.4.0
+diffusers==0.24.0
+transformers==4.36.2
+accelerate==0.26.1
+matplotlib==3.7.4
+tqdm==4.64.1
+einops==0.7.0
+onnxruntime==1.16.2
+
+# Production web framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Additional production dependencies
+gunicorn==21.2.0
+python-magic==0.4.27
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Monitoring and logging
+structlog==23.2.0
+prometheus-client==0.19.0
+
+# Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Database (optional)
+sqlalchemy==2.0.23
+alembic==1.13.1
+
+# Caching
+redis==5.0.1
+
+# File handling
+aiofiles==23.2.1
+
+# HTTP client
+httpx==0.25.2
+
+# Configuration management
+python-dotenv==1.0.0
+pyyaml==6.0.1
+
+# Image processing
+imageio==2.31.6
+scikit-image==0.21.0
+
+# Utilities
+click==8.1.7
+rich==13.7.0

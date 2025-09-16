@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OOTDiffusion Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .file-input {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 15px;
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .file-input-label:hover {
+            background: #e8f0ff;
+            border-color: #5a6fd8;
+        }
+
+        .file-input-label.has-file {
+            background: #e8f5e8;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .result-item {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .result-item img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .result-item .info {
+            padding: 15px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .config-section {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+
+        .api-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 OOTDiffusion Test Interface</h1>
+            <p>Test all functionalities of your production-ready OOTDiffusion API</p>
+        </div>
+
+        <div class="content">
+            <!-- API Configuration Section -->
+            <div class="section api-info">
+                <h2>🔧 API Configuration</h2>
+                <div class="two-column">
+                    <div class="form-group">
+                        <label for="apiUrl">API Base URL:</label>
+                        <input type="text" id="apiUrl" value="http://localhost:7865" placeholder="http://localhost:7865">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn" onclick="testConnection()">Test Connection</button>
+                        <button class="btn btn-secondary" onclick="checkHealth()">Health Check</button>
+                    </div>
+                </div>
+                <div id="connectionStatus"></div>
+            </div>
+
+            <!-- Image Processing Section -->
+            <div class="section">
+                <h2>🖼️ Image Processing Test</h2>
+                <div class="two-column">
+                    <div class="form-group">
+                        <label>Model Image:</label>
+                        <div class="file-input">
+                            <input type="file" id="modelFile" accept="image/*" onchange="handleFileSelect('modelFile', 'modelPreview')">
+                            <label for="modelFile" class="file-input-label" id="modelLabel">
+                                📁 Click to select model image
+                            </label>
+                        </div>
+                        <div id="modelPreview" style="margin-top: 10px;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Cloth Image:</label>
+                        <div class="file-input">
+                            <input type="file" id="clothFile" accept="image/*" onchange="handleFileSelect('clothFile', 'clothPreview')">
+                            <label for="clothFile" class="file-input-label" id="clothLabel">
+                                👕 Click to select cloth image
+                            </label>
+                        </div>
+                        <div id="clothPreview" style="margin-top: 10px;"></div>
+                    </div>
+                </div>
+
+                <div class="two-column">
+                    <div class="form-group">
+                        <label for="modelType">Model Type:</label>
+                        <select id="modelType" onchange="updateCategoryOptions()">
+                            <option value="hd">Half-body (HD)</option>
+                            <option value="dc">Full-body (DC)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Garment Category:</label>
+                        <select id="category">
+                            <option value="0">Upper-body</option>
+                            <option value="1">Lower-body</option>
+                            <option value="2">Dress</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="two-column">
+                    <div class="form-group">
+                        <label for="samples">Number of Samples:</label>
+                        <input type="number" id="samples" value="1" min="1" max="4">
+                    </div>
+                    <div class="form-group">
+                        <label for="steps">Inference Steps:</label>
+                        <input type="number" id="steps" value="20" min="1" max="40">
+                    </div>
+                </div>
+
+                <div class="two-column">
+                    <div class="form-group">
+                        <label for="scale">Guidance Scale:</label>
+                        <input type="number" id="scale" value="2.0" min="1.0" max="5.0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="seed">Random Seed:</label>
+                        <input type="number" id="seed" value="-1" min="-1" max="2147483647">
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="processImages()" id="processBtn">
+                        🚀 Process Images
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearResults()">
+                        🗑️ Clear Results
+                    </button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processing images... This may take a few minutes.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+
+                <div id="processStatus"></div>
+                <div id="results" class="results"></div>
+            </div>
+
+            <!-- API Testing Section -->
+            <div class="section config-section">
+                <h2>🧪 API Testing</h2>
+                <div class="two-column">
+                    <div>
+                        <h3>Quick Tests</h3>
+                        <button class="btn" onclick="testRootEndpoint()">Test Root Endpoint</button>
+                        <button class="btn" onclick="testHealthEndpoint()">Test Health Endpoint</button>
+                        <button class="btn" onclick="testDocsEndpoint()">Test Docs Endpoint</button>
+                    </div>
+                    <div>
+                        <h3>Error Testing</h3>
+                        <button class="btn btn-danger" onclick="testInvalidFile()">Test Invalid File</button>
+                        <button class="btn btn-danger" onclick="testMissingFiles()">Test Missing Files</button>
+                        <button class="btn btn-danger" onclick="testLargeFile()">Test Large File</button>
+                    </div>
+                </div>
+                <div id="testResults"></div>
+            </div>
+
+            <!-- System Information -->
+            <div class="section">
+                <h2>📊 System Information</h2>
+                <div id="systemInfo">
+                    <p>Click "Check Health" to get system information</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFiles = {
+            model: null,
+            cloth: null
+        };
+
+        // Handle file selection
+        function handleFileSelect(inputId, previewId) {
+            const input = document.getElementById(inputId);
+            const label = document.getElementById(inputId.replace('File', 'Label'));
+            const preview = document.getElementById(previewId);
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                selectedFiles[inputId.replace('File', '')] = file;
+                
+                // Update label
+                label.textContent = `✅ ${file.name}`;
+                label.classList.add('has-file');
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" style="max-width: 200px; max-height: 200px; border-radius: 5px;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Update category options based on model type
+        function updateCategoryOptions() {
+            const modelType = document.getElementById('modelType').value;
+            const categorySelect = document.getElementById('category');
+            
+            if (modelType === 'hd') {
+                categorySelect.innerHTML = '<option value="0">Upper-body</option>';
+            } else {
+                categorySelect.innerHTML = `
+                    <option value="0">Upper-body</option>
+                    <option value="1">Lower-body</option>
+                    <option value="2">Dress</option>
+                `;
+            }
+        }
+
+        // Test API connection
+        async function testConnection() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const statusDiv = document.getElementById('connectionStatus');
+            
+            try {
+                const response = await fetch(`${apiUrl}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.innerHTML = `
+                        <div class="status success">
+                            ✅ Connected successfully!<br>
+                            Status: ${data.status}<br>
+                            Version: ${data.version}<br>
+                            Environment: ${data.environment}
+                        </div>
+                    `;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ Connection failed: ${error.message}<br>
+                        Make sure the API is running on ${apiUrl}
+                    </div>
+                `;
+            }
+        }
+
+        // Check health endpoint
+        async function checkHealth() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const systemInfo = document.getElementById('systemInfo');
+            
+            try {
+                const response = await fetch(`${apiUrl}/health`);
+                const data = await response.json();
+                
+                systemInfo.innerHTML = `
+                    <div class="status success">
+                        <h3>System Status: ${data.status}</h3>
+                        <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+                        <p><strong>Version:</strong> ${data.version}</p>
+                        <p><strong>Environment:</strong> ${data.environment}</p>
+                        <p><strong>Models Loaded:</strong> ${data.models_loaded ? '✅ Yes' : '❌ No'}</p>
+                        <p><strong>GPU Available:</strong> ${data.gpu_available ? '✅ Yes' : '❌ No'}</p>
+                    </div>
+                `;
+            } catch (error) {
+                systemInfo.innerHTML = `
+                    <div class="status error">
+                        ❌ Health check failed: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Process images
+        async function processImages() {
+            if (!selectedFiles.model || !selectedFiles.cloth) {
+                showStatus('error', 'Please select both model and cloth images');
+                return;
+            }
+
+            const apiUrl = document.getElementById('apiUrl').value;
+            const formData = new FormData();
+            
+            formData.append('model_file', selectedFiles.model);
+            formData.append('cloth_file', selectedFiles.cloth);
+            formData.append('model_type', document.getElementById('modelType').value);
+            formData.append('category', document.getElementById('category').value);
+            formData.append('samples', document.getElementById('samples').value);
+            formData.append('steps', document.getElementById('steps').value);
+            formData.append('scale', document.getElementById('scale').value);
+            formData.append('seed', document.getElementById('seed').value);
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('processBtn').disabled = true;
+            
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 90) progress = 90;
+                document.getElementById('progressFill').style.width = progress + '%';
+            }, 500);
+
+            try {
+                const response = await fetch(`${apiUrl}/process`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                clearInterval(progressInterval);
+                document.getElementById('progressFill').style.width = '100%';
+
+                if (data.success) {
+                    showStatus('success', `Images processed successfully in ${data.processing_time?.toFixed(2)}s`);
+                    displayResults(data.result_paths, apiUrl);
+                } else {
+                    showStatus('error', data.message || 'Processing failed');
+                }
+            } catch (error) {
+                clearInterval(progressInterval);
+                showStatus('error', `Processing failed: ${error.message}`);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('processBtn').disabled = false;
+                document.getElementById('progressFill').style.width = '0%';
+            }
+        }
+
+        // Display results
+        function displayResults(resultPaths, apiUrl) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            
+            resultPaths.forEach((path, index) => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.innerHTML = `
+                    <img src="${apiUrl}${path}" alt="Result ${index + 1}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4='">
+                    <div class="info">
+                        <h4>Result ${index + 1}</h4>
+                        <p><a href="${apiUrl}${path}" target="_blank">Download Image</a></p>
+                    </div>
+                `;
+                resultsDiv.appendChild(resultItem);
+            });
+        }
+
+        // Show status message
+        function showStatus(type, message) {
+            const statusDiv = document.getElementById('processStatus');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // Clear results
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('processStatus').innerHTML = '';
+        }
+
+        // Test endpoints
+        async function testRootEndpoint() {
+            await testEndpoint('GET', '/', 'Root Endpoint');
+        }
+
+        async function testHealthEndpoint() {
+            await testEndpoint('GET', '/health', 'Health Endpoint');
+        }
+
+        async function testDocsEndpoint() {
+            await testEndpoint('GET', '/docs', 'Docs Endpoint');
+        }
+
+        async function testEndpoint(method, path, name) {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const testResults = document.getElementById('testResults');
+            
+            try {
+                const response = await fetch(`${apiUrl}${path}`);
+                const status = response.ok ? 'success' : 'error';
+                const message = response.ok ? 
+                    `✅ ${name}: OK (${response.status})` : 
+                    `❌ ${name}: Failed (${response.status})`;
+                
+                testResults.innerHTML += `<div class="status ${status}">${message}</div>`;
+            } catch (error) {
+                testResults.innerHTML += `<div class="status error">❌ ${name}: Error - ${error.message}</div>`;
+            }
+        }
+
+        // Test error cases
+        async function testInvalidFile() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const formData = new FormData();
+            
+            // Create a text file
+            const textBlob = new Blob(['This is not an image'], { type: 'text/plain' });
+            formData.append('model_file', textBlob, 'test.txt');
+            formData.append('cloth_file', textBlob, 'test.txt');
+            
+            try {
+                const response = await fetch(`${apiUrl}/process`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                const status = response.status === 400 ? 'success' : 'error';
+                const message = response.status === 400 ? 
+                    '✅ Invalid file test passed (400 error as expected)' : 
+                    `❌ Invalid file test failed (got ${response.status})`;
+                
+                document.getElementById('testResults').innerHTML += `<div class="status ${status}">${message}</div>`;
+            } catch (error) {
+                document.getElementById('testResults').innerHTML += `<div class="status error">❌ Invalid file test error: ${error.message}</div>`;
+            }
+        }
+
+        async function testMissingFiles() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            
+            try {
+                const response = await fetch(`${apiUrl}/process`, {
+                    method: 'POST',
+                    body: new FormData()
+                });
+                
+                const status = response.status === 422 ? 'success' : 'error';
+                const message = response.status === 422 ? 
+                    '✅ Missing files test passed (422 error as expected)' : 
+                    `❌ Missing files test failed (got ${response.status})`;
+                
+                document.getElementById('testResults').innerHTML += `<div class="status ${status}">${message}</div>`;
+            } catch (error) {
+                document.getElementById('testResults').innerHTML += `<div class="status error">❌ Missing files test error: ${error.message}</div>`;
+            }
+        }
+
+        async function testLargeFile() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const formData = new FormData();
+            
+            // Create a large file (simulate)
+            const largeBlob = new Blob([new ArrayBuffer(50 * 1024 * 1024)], { type: 'image/png' });
+            formData.append('model_file', largeBlob, 'large.png');
+            formData.append('cloth_file', largeBlob, 'large.png');
+            
+            try {
+                const response = await fetch(`${apiUrl}/process`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const status = response.status >= 400 ? 'success' : 'warning';
+                const message = response.status >= 400 ? 
+                    `✅ Large file test passed (${response.status} error as expected)` : 
+                    `⚠️ Large file test: File was accepted (${response.status})`;
+                
+                document.getElementById('testResults').innerHTML += `<div class="status ${status}">${message}</div>`;
+            } catch (error) {
+                document.getElementById('testResults').innerHTML += `<div class="status error">❌ Large file test error: ${error.message}</div>`;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCategoryOptions();
+            testConnection();
+        });
+    </script>
+</body>
+</html>
