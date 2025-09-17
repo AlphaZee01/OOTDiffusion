@@ -74,15 +74,15 @@ exec "$@"' > /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 
 # Expose port
-EXPOSE 7865
+EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=300s --retries=3 \
-    CMD curl -f http://localhost:7865/health || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Use entrypoint script
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["python", "api/app.py"]
+CMD ["python", "handler.py"]
 
 # Development stage
 FROM base as development
@@ -107,4 +107,4 @@ RUN chown -R ootd:ootd /app
 USER ootd
 
 # Use production command
-CMD ["python", "api/app.py"]
+CMD ["python", "handler.py"]

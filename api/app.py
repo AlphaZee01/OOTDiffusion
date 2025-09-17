@@ -252,6 +252,7 @@ async def health_check():
     )
 
 @app.post("/process", response_model=ProcessResponse)
+@app.post("/tryon", response_model=ProcessResponse)
 async def process_images(
     background_tasks: BackgroundTasks,
     model_file: UploadFile = File(..., description="Model image file"),
