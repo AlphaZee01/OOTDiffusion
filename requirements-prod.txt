@@ -20,6 +20,9 @@ fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
 
+# RunPod serverless support
+runpod==1.4.0
+
 # Additional production dependencies
 gunicorn==21.2.0
 python-magic==0.4.27
