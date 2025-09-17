@@ -82,7 +82,7 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=300s --retries=3 \
 
 # Use entrypoint script
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["python", "handler.py"]
+CMD ["python", "runpod_handler.py"]
 
 # Development stage
 FROM base as development
@@ -107,4 +107,4 @@ RUN chown -R ootd:ootd /app
 USER ootd
 
 # Use production command
-CMD ["python", "handler.py"]
+CMD ["python", "runpod_handler.py"]

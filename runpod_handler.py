@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 RunPod Serverless Handler for OOTDiffusion
-Production-ready handler script for RunPod serverless deployment
+Simplified handler following RunPod best practices
 """
 
 import os
@@ -18,7 +18,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
@@ -29,8 +29,41 @@ except ImportError:
     logger.error("RunPod not installed. Install with: pip install runpod")
     sys.exit(1)
 
-# Import our inference function
-from run.inference import inference
+# Global variables for model caching
+models_initialized = False
+inference_function = None
+
+def initialize_models():
+    """Initialize models once on startup"""
+    global models_initialized, inference_function
+    
+    if models_initialized:
+        return True
+    
+    try:
+        logger.info("Initializing OOTDiffusion models...")
+        
+        # Import inference function
+        from run.inference import inference
+        inference_function = inference
+        
+        # Initialize models with CPU device for RunPod compatibility
+        inference(
+            user_image="dummy",  # Will be replaced in actual calls
+            cloth_image="dummy",
+            garment_type="upper",
+            model_type="hd",
+            gpu_id=0
+        )
+        
+        models_initialized = True
+        logger.info("✅ Models initialized successfully")
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize models: {e}")
+        logger.error(traceback.format_exc())
+        return False
 
 def handler(job):
     """
@@ -41,27 +74,25 @@ def handler(job):
         "input": {
             "user_image": "base64_encoded_image",
             "cloth_image": "base64_encoded_image", 
-            "garment_type": "upper",  # optional: "upper", "lower", "dress"
-            "model_type": "hd",       # optional: "hd", "dc"
-            "category": 0,            # optional: 0=upperbody, 1=lowerbody, 2=dress
-            "scale": 2.0,             # optional: guidance scale
-            "steps": 20,              # optional: inference steps
-            "samples": 1,             # optional: number of samples
-            "seed": -1,               # optional: random seed (-1 for random)
-            "gpu_id": 0               # optional: GPU ID
-        }
-    }
-    
-    Returns:
-    {
-        "output": {
-            "success": True,
-            "images": ["base64_encoded_result1", "base64_encoded_result2", ...],
-            "message": "Processing completed successfully"
+            "garment_type": "upper",  # optional
+            "model_type": "hd",       # optional
+            "category": 0,            # optional
+            "scale": 2.0,             # optional
+            "steps": 20,              # optional
+            "samples": 1,             # optional
+            "seed": -1,               # optional
+            "gpu_id": 0               # optional
         }
     }
     """
     try:
+        # Initialize models if not already done
+        if not models_initialized:
+            if not initialize_models():
+                return {
+                    "error": "Failed to initialize models"
+                }
+        
         # Extract inputs
         inputs = job.get("input", {})
         
@@ -92,7 +123,7 @@ def handler(job):
         logger.info(f"Processing request: garment_type={garment_type}, model_type={model_type}, samples={samples}")
         
         # Run inference
-        result_images = inference(
+        result_images = inference_function(
             user_image=user_image,
             cloth_image=cloth_image,
             garment_type=garment_type,
@@ -134,16 +165,10 @@ def handler(job):
             "traceback": traceback.format_exc()
         }
 
-# Initialize models on startup
-logger.info("Initializing OOTDiffusion models...")
-try:
-    from run.inference import initialize_models
-    initialize_models(gpu_id=0)
-    logger.info("✅ Models initialized successfully")
-except Exception as e:
-    logger.error(f"❌ Failed to initialize models: {e}")
+# Initialize models on module load
+logger.info("Starting OOTDiffusion RunPod serverless handler...")
+initialize_models()
 
+# Start the RunPod serverless handler
 if __name__ == "__main__":
-    # Start the RunPod serverless handler
-    logger.info("Starting OOTDiffusion RunPod serverless handler...")
     runpod.serverless.start({"handler": handler})
